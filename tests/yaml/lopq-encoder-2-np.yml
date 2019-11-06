@@ -1,0 +1,12 @@
+!PipelineEncoder
+components:
+  - !PCALocalEncoder
+    parameters:
+      output_dim: 32
+      num_locals: 8
+    gnes_config:
+      batch_size: 2048
+  - !PQEncoder
+    parameters:
+      num_bytes: 8
+  - !BaseBinaryEncoder {}

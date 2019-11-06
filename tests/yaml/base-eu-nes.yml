@@ -1,0 +1,25 @@
+!GNES
+components:
+  encoder:
+    !PipelineEncoder
+    components:
+      - !BertEncoder
+        parameters:
+          kwargs:
+            port: $BERT_CI_PORT
+            port_out: $BERT_CI_PORT_OUT
+        gnes_config:
+          is_trained: true
+      - !PCALocalEncoder
+        parameters:
+          output_dim: 32
+          num_locals: 8
+        gnes_config:
+          batch_size: 2048
+  binary_indexer: !FaissIndexer
+    num_dim: 32
+    index_key: "HNSW32,Flat"
+    data_path: ./test_faiss_db
+  text_indexer: !LVDBIndexer
+    parameters:
+      data_path: ./test_db

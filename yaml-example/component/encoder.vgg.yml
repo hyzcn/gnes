@@ -1,0 +1,23 @@
+!PipelineEncoder
+components:
+  - !TorchvisionEncoder
+    parameters:
+      model_dir: /ext_data/image_encoder
+      model_name: vgg16
+      layers:
+        - features
+        - avg_pool
+        - x.view(x.size(0), -1)
+        - classifier[0]
+    gnes_config:
+      is_trained: true
+  - !PCALocalEncoder
+    parameters:
+      output_dim: 200
+      num_locals: 10
+    gnes_config:
+      batch_size: 2048
+  - !PQEncoder
+    parameters:
+      cluster_per_byte: 20
+      num_bytes: 10

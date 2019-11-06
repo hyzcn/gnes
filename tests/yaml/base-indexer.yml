@@ -1,0 +1,9 @@
+!JointIndexer
+components:
+  - !BIndexer
+    parameters:
+      num_bytes: 2
+      data_path: ./idx.binary
+  - !LVDBIndexer
+    parameters:
+      data_path: ./idx.doc_content

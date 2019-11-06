@@ -1,0 +1,8 @@
+!FFmpegPreprocessor
+parameters:
+  duplicate_rm: true
+  use_phash_weight: true
+  phash_thresh: 5
+  frame_size: "192:168"
+gnes_config:
+  is_trained: true

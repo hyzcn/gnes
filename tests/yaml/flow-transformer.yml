@@ -1,0 +1,8 @@
+!PipelineEncoder
+components:
+  - !CharEmbeddingEncoder {}
+gnes_config:
+  name: my_transformer  # a customized name
+  is_trained: true  # indicate the model has been trained
+  work_dir: $TEST_WORKDIR
+  batch_size: 128

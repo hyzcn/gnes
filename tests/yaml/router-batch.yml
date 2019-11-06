@@ -1,0 +1,3 @@
+!DocBatchRouter
+gnes_config:
+  batch_size: 2

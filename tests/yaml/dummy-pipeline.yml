@@ -1,0 +1,11 @@
+!PipelineEncoder
+components:
+  - !HashEncoder
+    parameters:
+      num_bytes: 6
+  - !HashEncoder
+    parameters:
+      num_bytes: 2
+gnes_config:
+  work_dir: ./
+  name: dummy-pipeline

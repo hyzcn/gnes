@@ -1,0 +1,220 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+package gnes;
+
+message NdArray {
+    // the actual array data, in bytes
+    bytes data = 1;
+
+    // Specifies the shape (dimensions) of an array
+    repeated uint32 shape = 2 [packed = true];
+
+    // Specifies the data type of an array
+    string dtype = 3;
+}
+
+message Chunk {
+    // indicate where this chunk comes from
+    uint64 doc_id = 1;
+
+    // enforce at most one field will be set at the same time
+    oneof content {
+        // the original text of the chunk (only apply to text document)
+        string text = 2;
+
+        // the original ndarry of the chunk (apply to image/video documents)
+        NdArray blob = 3;
+
+        // raw bytes of chunk;
+        bytes raw = 7;
+    }
+
+    // the 1-dim offset of the chunk wrt. the document (apply to text document)
+    uint32 offset = 4;
+
+    // the n-dim offset of the chunk wrt. the document (apply to image/video document)
+    repeated uint32 offset_nd = 5 [packed = true];
+
+    float weight = 6;
+
+    NdArray embedding = 8;
+}
+
+message Document {
+    // The unique document ID
+    uint64 doc_id = 1;
+
+    // list of the chunks of the document
+    repeated Chunk chunks = 2;
+
+    enum DocType {
+        UNKNOWN = 0;
+        TEXT = 1;
+        IMAGE = 2;
+        VIDEO = 3;
+        AUDIO = 4;
+    }
+
+    // document type
+    DocType doc_type = 3;
+
+    // meta information of this document
+    bytes meta_info = 4;
+
+    // raw information of this document
+    oneof raw_data {
+        string raw_text = 5;
+        NdArray raw_image = 6;
+        NdArray raw_video = 7;
+        bytes raw_bytes = 8; // for other types
+    }
+
+    float weight = 10;
+}
+
+message Envelope {
+    // unique id of the sender of the message
+    string client_id = 1;
+
+    // unique id of the request
+    uint32 request_id = 2;
+
+    // for multi-part message
+    uint32 part_id = 3;
+    repeated uint32 num_part = 4;
+
+    uint32 timeout = 5;
+
+    // list of string represent the route of the message
+    message route {
+        string service = 1;
+        google.protobuf.Timestamp start_time = 2;
+        google.protobuf.Timestamp end_time = 3;
+        google.protobuf.Timestamp first_start_time = 4;
+        google.protobuf.Timestamp last_end_time = 5;
+        string service_identity = 6;
+    }
+    repeated route routes = 6;
+
+    string gnes_version = 7;
+
+    string proto_version = 8;
+
+    string vcs_version = 9;
+}
+
+message Message {
+    Envelope envelope = 1;
+
+    oneof body {
+        Request request = 2;
+        Response response = 3;
+    }
+}
+
+// define Request
+message Request {
+    uint32 request_id = 1;
+
+    oneof body {
+        TrainRequest train = 2;
+        IndexRequest index = 3;
+        QueryRequest search = 4;
+        ControlRequest control = 5;
+    }
+
+    message TrainRequest {
+        repeated Document docs = 1;
+        bool flush = 2;
+    }
+
+    message IndexRequest {
+        repeated Document docs = 1;
+    }
+
+    message QueryRequest {
+        Document query = 1;
+        uint32 top_k = 2;
+    }
+
+    message ControlRequest {
+        enum Command {
+            TERMINATE = 0;
+            STATUS = 1;
+        }
+
+        Command command = 1;
+    }
+}
+
+// define Response
+message Response {
+    uint32 request_id = 1;
+
+
+    oneof body {
+        TrainResponse train = 2;
+        IndexResponse index = 3;
+        QueryResponse search = 4;
+        ControlResponse control = 5;
+    }
+
+    enum Status {
+        SUCCESS = 0;
+        ERROR = 1;
+        PENDING = 2;
+        READY = 3;
+    }
+
+    message TrainResponse {
+        Status status = 1;
+    }
+
+    message IndexResponse {
+        Status status = 1;
+    }
+
+    message ControlResponse {
+        Status status = 1;
+    }
+
+    message QueryResponse {
+        message ScoredResult {
+            oneof body {
+                Chunk chunk = 1;
+                Document doc = 2;
+            }
+
+            Score score = 3;
+
+            message Score {
+                float value = 1;
+                string explained = 2;
+            }
+        }
+
+        Status status = 1;
+        uint32 top_k = 2;
+        repeated ScoredResult topk_results = 3;
+        bool is_big_score_similar = 4;
+        bool is_sorted = 5;
+    }
+}
+
+
+service GnesRPC {
+    // option (rpc_core.method_no_deadline) = true;
+    // option (rpc_core.service_default_deadline_ms) = 5000;
+    rpc Train (Request) returns (Response) {
+    }
+    rpc Index (Request) returns (Response) {
+    }
+    rpc Query (Request) returns (Response) {
+    }
+    rpc Call (Request) returns (Response) {
+    }
+    rpc StreamCall (stream Request) returns (stream Response) {
+    }
+}
+

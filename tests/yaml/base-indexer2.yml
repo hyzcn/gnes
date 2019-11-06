@@ -1,0 +1,10 @@
+!JointIndexer
+components:
+  - !NumpyIndexer
+    parameters:
+      num_bytes: 2
+      data_path: ./idx.binary
+  - !NumpyIndexer
+    parameters:
+      num_bytes: 2
+      data_path: ./idx.doc_content
